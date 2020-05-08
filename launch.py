@@ -86,15 +86,15 @@ class main_gui(QMainWindow):
 
         # get the coordinates of the Free space
         #    if even, no free space 
-        if x_dim%2 == 0:
+        if self.ui.x_dim%2 == 0:
             middle_x = -1
             # setting this to -1 so that no coordinate will match it, and so there is not free space 
         else:
-            middle_x = (x_dim-1)/2
-        if y_dim%2 ==0:
+            middle_x = (self.ui.x_dim-1)/2
+        if self.ui.y_dim%2 ==0:
             middle_y = -1
         else:
-            middle_y = (y_dim-1)/2
+            middle_y = (self.ui.y_dim-1)/2
 
 
         for x in range(self.ui.x_dim):
@@ -102,6 +102,7 @@ class main_gui(QMainWindow):
                 if x==middle_x and y==middle_y:
                     # skip the free space 
                     self.ui.buttons[x][y].setText("Free \n Space!")
+                    self.ui.buttons[x][y].setEnabled(False)
                 else:
                     if len(phrase_copy)==1:
                         which = 0
