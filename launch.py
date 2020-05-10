@@ -1,6 +1,7 @@
 import sys # passing args. Not really used atm
 import os # used to get the datafile's location 
 from random import randint # randomly choose text
+from glob import glob # used to find all the phrase files
 
 from board import Ui_MainWindow # UI
 
@@ -14,10 +15,6 @@ Ben Smithers (benjamin.smithers@mavs.uta.edu)
 
 07 May 2020 
 '''
-
-
-# which phrases file to use
-word_file = os.path.join(os.path.dirname(__file__), "phrases.dat")
 
 def get_disable_function( button ):
     """
@@ -35,17 +32,22 @@ class main_gui(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        file_obj = open(word_file, 'r')
-        self.phrases = file_obj.readlines()
-        file_obj.close()
-        print("Loaded {} phrases".format(len(self.phrases)))
-        
+        self.phrases = []
+        self.phrase_files = glob(os.path.join(os.path.dirname(__file__) ,"*.dat"))
+        print(os.path.dirname(__file__))
+        print(self.phrase_files)
+        phrase_names = [ os.path.basename(filepath).split(".")[0] for filepath in self.phrase_files ]
+        for phrase in phrase_names:
+            self.ui.comboBox.addItem(phrase)
+
+        # laod file and assign button phrases 
+        self.ui.comboBox.setCurrentIndex(0)
+        self.load_phrases(True)
+
         # assure we have enough phrases to make the bingo board
         if len(self.phrases)<(self.ui.x_dim*self.ui.y_dim):
             raise Exception("Insufficient phrases! {}".format(len(self.phrases)))
 
-        # need to assign starting values to the buttons
-        self.assign()
 
         # Need to assign a function to each button
         # buttons disable themselves when pressed. 
@@ -55,6 +57,26 @@ class main_gui(QMainWindow):
 
         # assign function to reset button 
         self.ui.pushButton.clicked.connect(self.assign)
+        self.ui.comboBox.currentIndexChanged.connect(self.load_phrases)
+        self.ui.actionQuit.triggered.connect(self.exit)
+
+    def exit(self):
+        sys.exit()
+
+    def load_phrases(self, force=False):
+
+        if not force:
+            file_index = self.ui.comboBox.currentIndex()
+            file_name = self.phrase_files[file_index]
+        else:
+            file_name = os.path.join(os.path.dirname(__file__), "zoom phrases.dat")
+
+
+        file_obj = open(file_name, 'r')
+        self.phrases = file_obj.readlines()
+        file_obj.close()
+        print("Loaded {} phrases".format(len(self.phrases)))
+        self.assign()
 
     def add_line_breaks(self, what):
         """

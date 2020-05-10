@@ -14,12 +14,21 @@ class Ui_MainWindow(object):
         MainWindow.resize(867, 644)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+
+
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName("horizontalLayout")
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.horizontalLayout.addLayout(self.verticalLayout)
+
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setMaximumSize(QtCore.QSize(200, 16777215))
         self.pushButton.setObjectName("pushButton")
-        self.horizontalLayout.addWidget(self.pushButton)
+        self.verticalLayout.addWidget(self.pushButton)
+        self.comboBox = QtWidgets.QComboBox(self.centralwidget)
+        self.comboBox.setObjectName("comboBox")
+        self.verticalLayout.addWidget(self.comboBox)
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
         
