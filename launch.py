@@ -4,9 +4,11 @@ from random import randint # randomly choose text
 from glob import glob # used to find all the phrase files
 
 from board import Ui_MainWindow # UI
+from about_gui import Ui_Dialog as bingo_gui
 
 # various gui elements
-from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication, QPushButton
+from PyQt5 import QtCore
+from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication, QPushButton, QDialog
 
 '''
 Ben Smithers (benjamin.smithers@mavs.uta.edu)
@@ -16,15 +18,22 @@ Ben Smithers (benjamin.smithers@mavs.uta.edu)
 07 May 2020 
 '''
 
-def get_disable_function( button ):
+def get_disable_function( board,x,y ):
     """
     Returns a function that disables the given button
     """
-    if not isinstance(button, QPushButton):
-        raise TypeError("Arg should be {}, not {}".format(QPushButton, type(button)))
+    if not isinstance(board, main_gui):
+        raise TypeError("Arg should be {}, not {}".format(main_gui, type(board)))
     def disable():
-        button.setEnabled(False)
+        board.ui.buttons[x][y].setEnabled(False)
+        board.check_bingo()
     return( disable )
+
+class bingo_class(QDialog):
+    def __init__(self,parent):
+        super(bingo_class, self).__init__(parent)
+        self.ui = bingo_gui()
+        self.ui.setupUi(self)
 
 class main_gui(QMainWindow):
     def __init__(self,parent=None):
@@ -53,15 +62,54 @@ class main_gui(QMainWindow):
         # buttons disable themselves when pressed. 
         for x in range(self.ui.x_dim):
             for y in range(self.ui.y_dim):
-                self.ui.buttons[x][y].clicked.connect(get_disable_function(self.ui.buttons[x][y]))
+                self.ui.buttons[x][y].clicked.connect(get_disable_function(self,x,y))
 
         # assign function to reset button 
         self.ui.pushButton.clicked.connect(self.assign)
         self.ui.comboBox.currentIndexChanged.connect(self.load_phrases)
+        self.ui.comboBox.setCurrentIndex(1)
         self.ui.actionQuit.triggered.connect(self.exit)
 
     def exit(self):
         sys.exit()
+
+    def bingo(self):
+        bingo_notification = bingo_class(self)
+        bingo_notification.setAttribute( QtCore.Qt.WA_DeleteOnClose )
+        bingo_notification.exec_()
+
+    def check_bingo(self):
+        # check rows and columns for bingo!
+        for x in range(self.ui.x_dim):
+            bingo = True
+            for y in range(self.ui.y_dim):
+                # if button still enabled, no bingo, so skip
+                bingo = bingo and (not self.ui.buttons[x][y].isEnabled())
+                if not bingo:
+                    break
+            if bingo:
+                self.bingo()
+
+        for y in range(self.ui.y_dim):
+            bingo = True
+            for x in range(self.ui.x_dim):
+                bingo = bingo and (not self.ui.buttons[x][y].isEnabled())
+                if not bingo:
+                    break
+            if bingo:
+                self.bingo()
+        
+        # check diagonals for bingo
+        if self.ui.x_dim == self.ui.y_dim:
+            bingo = True
+            other_bingo = True
+            for xy in range(self.ui.x_dim):
+                bingo = bingo and (not self.ui.buttons[xy][xy].isEnabled())
+                other_bingo = other_bingo and (not self.ui.buttons[xy][self.ui.y_dim - xy - 1].isEnabled())
+                if not (bingo or other_bingo):
+                    break
+            if bingo or other_bingo:
+                self.bingo()
 
     def load_phrases(self, force=False):
 
