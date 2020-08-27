@@ -7,7 +7,7 @@ from board import Ui_MainWindow # UI
 from about_gui import Ui_Dialog as bingo_gui
 
 # various gui elements
-from PyQt5 import QtCore
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication, QPushButton, QDialog
 
 '''
@@ -17,6 +17,127 @@ Ben Smithers (benjamin.smithers@mavs.uta.edu)
 
 07 May 2020 
 '''
+
+# pyinstaller was being awful and wouldn't work. So I'm just transcribing the phrases directly into here
+breengo = """Someone drops something
+Naked ladies face down
+Guns with stock vfx
+Wife is either killed or commits suicide
+Gratuitous stock footage
+Pool party
+Someone makes an unusual mistake
+magic rock
+Overly mean person
+Death by the power of editing
+Repurposed prop or location
+Gratuitous blood
+Fade effect
+HACK THE PLANET
+Evil businessman or government
+Breen talking to himself
+Braless ladies
+Desert Driving
+Badly edited death scene
+Green screen effect
+Neil Breen has magic
+Fuck Laptops
+Multiple Laptops
+Neil Breen nutsack shot
+Skull and/or skeleton
+Weird laughing"""
+
+breengo = breengo.split("\n")
+
+neils = """Neil waits to the last minute to get food.
+Andy mutes Neil so he gets food.
+Drunk NPC
+God-tier character randomly shows up.
+Incompetent NPC
+NPC acts out theme hyperbolicaly 
+Something takes way longer than it should.
+Loralie doesn't blink.
+The Manta makes an appearance.
+Freaking Pinewood. 
+Loralie gets edgy.
+Dom changes into a new outfit.
+Loralie does/says something super evil.
+A hero of time dies.
+Sidequest to kill another god-tier entity.
+Wander into something ridiculous. 
+Good plan doesn't work. 
+Good deed is punished.
+Forced into a blind decision.
+Critical Hit.
+Critical Failure.
+Neil says to roll a nonexistent skill. 
+Loralie gets another song.
+Loralie plays a song badly.
+Alloryn flexes his goo knowledge. 
+Alloryn is dumbfounded by stupidity.
+"""
+
+neils = neils.split("\n")
+
+zoom = """Person asks "can you hear me?" before speaking.
+Person has to ask "can you hear me?" twice before speaking.
+Someone joins without realizing their camera is on.
+Loud typing next to open mic. 
+Someone can't figure out how to share their screen.
+Emails and slack shared during presentation. 
+Nobody has any questions after a presetation. 
+Presenter goes over time. 
+Presenter asks "can everyone see my screen?"
+Presenter has to ask "can everyone see my screen?" twice
+Presenter doesn't realize they're muted. 
+Heavy breathing in open microphone.
+Someone's open mic echoes another speaker. 
+VERY LOUD PERSON.
+very quiet person
+Animation doesn't work.
+Crying baby in the background. 
+Someone else talking in the background. 
+Someone says "in these trying times"
+Person calls in from in bed.
+Dog barks during call. 
+Cat noises. 
+Loud car noises. 
+Someone yells Bingo! 
+Someone on camera drinks coffee.
+Someone on camera drinks alcohol. 
+Raised hand goes ignored. 
+Message in chat goes ignored. 
+Presenter warned they are almost out of time.
+Presenter warned they are way over time. 
+Question is really more of a comment. 
+Roboty voice.
+Someone walks away while their camera stays on.
+Weird camera angle at person's face.
+"""
+
+zoom = zoom.split("\n")
+
+def write(filename, datas):
+    obj = open(filename, 'w')
+    for line in datas:
+        obj.write(str(line))
+        obj.write("\n")
+    obj.close()
+
+def copy_file(which, to_what):
+    if not os.path.exists(which):
+        raise IOError("File {} doesn't exist".format(which))
+
+    if not os.path.abspath(to_what):
+        raise IOError("Destination folder doesn't exist")
+
+    
+    old = open(which, 'r')
+    new = open(to_what, 'w')
+
+    for line in old.readlines():
+        new.write(line)
+    old.close()
+    new.close()
 
 def get_disable_function( board,x,y ):
     """
@@ -42,9 +163,31 @@ class main_gui(QMainWindow):
         self.ui.setupUi(self)
 
         self.phrases = []
-        self.phrase_files = glob(os.path.join(os.path.dirname(__file__) ,"*.dat"))
-        print(os.path.dirname(__file__))
-        print(self.phrase_files)
+
+        # set up the save directory
+        if sys.platform=='linux':
+            basedir = os.path.join(os.path.expandvars('$HOME'),'.local','ZoomBingo')
+        elif sys.platform=='darwin': #macOS
+            basedir = os.path.join(os.path.expandvars('$HOME'),'ZoomBingo')
+        elif sys.platform=='win32' or sys.platform=='cygwin': # Windows and/or cygwin. Not actually sure if this works on cygwin
+            basedir = os.path.join(os.path.expandvars('%AppData%'),'ZoomBingo')
+        else:
+            raise NotImplementedError("{} is not a supported OS".format(sys.platform))
+        if not os.path.exists(basedir):
+            os.mkdir(basedir)
+        self.phrase_dir = basedir
+
+        if glob(os.path.join( self.phrase_dir, "*.dat"))==[]:
+            # copy the pre-distributed phrases into the folder
+            pre_installed = {"Neils Game.dat":neils, "zoom phrases.dat":zoom, "Breengo.dat":breengo}
+
+            for each in pre_installed.keys():
+                #copy_file(os.path.join("default_phrases",each), os.path.join(self.phrase_dir, each))
+                write(os.path.join(self.phrase_dir, each), pre_installed[each])
+
+        self.phrase_files = glob(os.path.join( self.phrase_dir, "*.dat"))
+        
+
         phrase_names = [ os.path.basename(filepath).split(".")[0] for filepath in self.phrase_files ]
         for phrase in phrase_names:
             self.ui.comboBox.addItem(phrase)
@@ -70,12 +213,14 @@ class main_gui(QMainWindow):
         self.ui.comboBox.setCurrentIndex(1)
         self.ui.actionQuit.triggered.connect(self.exit)
 
+        
+
     def exit(self):
         sys.exit()
 
     def bingo(self):
         bingo_notification = bingo_class(self)
-        bingo_notification.setAttribute( QtCore.Qt.WA_DeleteOnClose )
+        bingo_notification.setAttribute( Qt.WA_DeleteOnClose )
         bingo_notification.exec_()
 
     def check_bingo(self):
@@ -117,7 +262,7 @@ class main_gui(QMainWindow):
             file_index = self.ui.comboBox.currentIndex()
             file_name = self.phrase_files[file_index]
         else:
-            file_name = os.path.join(os.path.dirname(__file__), "zoom phrases.dat")
+            file_name = os.path.join( self.phrase_dir, "zoom phrases.dat")
 
 
         file_obj = open(file_name, 'r')
