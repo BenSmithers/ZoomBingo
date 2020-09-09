@@ -16,6 +16,10 @@ Ben Smithers (benjamin.smithers@mavs.uta.edu)
 ~~~ I regret nothing ~~~
 
 07 May 2020 
+
+
+09 September 2020:
+    I reeeally regret the way I had to make the pre-packed boards work :(
 '''
 
 # pyinstaller was being awful and wouldn't work. So I'm just transcribing the phrases directly into here
@@ -116,6 +120,38 @@ Weird camera angle at person's face.
 
 zoom = zoom.split("\n")
 
+space = """Turbulence
+Magnetic Reconnection
+This is really hard
+We don't really know how the sun works
+Hydrogen, Helium, and Metals
+Coronal Mass Ejection movie
+Animation doesn't work
+Animation works, miraculously 
+Magnetohydro Thermodynamics
+Our model didn't agree with data
+Overly simplified model
+Mentioning telegraph poles
+Explaining the Magnetopause
+Technical difficulties
+Plasma Wave
+Basically the speed of light
+"Courtesy of NASA"
+Overly simplified analogy 
+Oh how utterly Maxwellian
+We used a supercomputer
+Space weather is hard
+Space weather is easy
+Can only be solved numerically
+"Don't worry too much about this"
+"IT'S NOT CHAOS" - said about chaos 
+Magnetic Field Lines!
+Bow Shock
+Sonic Boom in Space
+"""
+
+space = space.split("\n")
+
 def write(filename, datas):
     obj = open(filename, 'w')
     for line in datas:
@@ -179,7 +215,7 @@ class main_gui(QMainWindow):
 
         if glob(os.path.join( self.phrase_dir, "*.dat"))==[]:
             # copy the pre-distributed phrases into the folder
-            pre_installed = {"Neils Game.dat":neils, "zoom phrases.dat":zoom, "Breengo.dat":breengo}
+            pre_installed = {"Neils Game.dat":neils, "zoom phrases.dat":zoom, "Breengo.dat":breengo, "Space Physics.dat":space}
 
             for each in pre_installed.keys():
                 #copy_file(os.path.join("default_phrases",each), os.path.join(self.phrase_dir, each))
@@ -194,7 +230,9 @@ class main_gui(QMainWindow):
 
         # laod file and assign button phrases 
         self.ui.comboBox.setCurrentIndex(0)
-        self.load_phrases(True)
+        self.force=True
+        self.load_phrases()
+        self.force=False
 
         # assure we have enough phrases to make the bingo board
         if len(self.phrases)<(self.ui.x_dim*self.ui.y_dim):
@@ -258,7 +296,7 @@ class main_gui(QMainWindow):
 
     def load_phrases(self, force=False):
 
-        if not force:
+        if not self.force:
             file_index = self.ui.comboBox.currentIndex()
             file_name = self.phrase_files[file_index]
         else:
